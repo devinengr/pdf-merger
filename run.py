@@ -117,18 +117,25 @@ def create_output_directories():
         os.makedirs(temp_dir, exist_ok=True)
 
 
-def grab_files():
+def perform_aggregate():
     if (not parser.ARG_SOURCE_ONLY):
         grab_test_reports()
         grab_checkstyle_reports()
     if (not parser.ARG_GRADLE_ONLY):
         grab_source_code()
+    merge_pdfs(pdfs_to_merge, parser.ARG_OUTPUT_FILE)
+    cleanup()
+
+
+def perform_combine():
+    merge_pdfs(parser.ARG_PDFS_TO_COMBINE, parser.ARG_OUTPUT_FILE)
 
 
 if __name__ == "__main__":
     parse_arguments()
     create_output_directories()
-    grab_files()
-    merge_pdfs(pdfs_to_merge, parser.ARG_OUTPUT_FILE)
-    cleanup()
+    if (parser.ARG_AGGREGATE_PDFS):
+        perform_aggregate()
+    elif (parser.ARG_COMBINE_PDFS):
+        perform_combine()
     print('Done')
