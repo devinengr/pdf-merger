@@ -114,6 +114,7 @@ def parse_combine() -> bool:
         if (len(combine_flag.options) > 1):
             for f in combine_flag.options:
                 if (not os.path.isfile(f) or not f.endswith(".pdf")):
+                    print("All files given must exist and be PDFs.")
                     return False
             ARG_COMBINE_PDFS = True
             ARG_PDFS_TO_COMBINE = combine_flag.options
@@ -128,9 +129,12 @@ def parse_output_file() -> bool:
         return True
     if (output_flag.occurrences == 1):
         if (len(output_flag.options) == 1):
-            if (os.access(os.path.dirname(output_flag.options[0]), os.W_OK) or os.access(os.path.curdir, os.W_OK)):
+            dir = os.path.dirname(output_flag.options[0])
+            if ((dir and os.access(dir, os.W_OK)) or ((not dir) and os.access(os.path.curdir, os.W_OK))):
                 ARG_OUTPUT_FILE = output_flag.options[0]
                 return True
+            else:
+                print("Files cannot be created in the chosen output location. Try another.")
     return False
 
 
@@ -188,9 +192,14 @@ def parse_gradle_test_dir() -> bool:
         return True
     if (path_flag.occurrences == 1 and dir_flag.occurrences == 1):
         if (len(dir_flag.options) == 1):
-            if (os.path.isdir(ARG_PATH + "/build/reports/tests/" + dir_flag.options[0])):
+            path_full = ARG_PATH + "/build/reports/tests/" + dir_flag.options[0]
+            if (os.path.isdir(path_full)):
                 ARG_GRADLE_TEST_DIR = dir_flag.options[0]
                 return True
+            else:
+                print("This is the determined location of the Gradle tests based on the options you provided:")
+                print(path_full)
+                print("It doesn't look like that folder exists. Double check the path to make sure.")
     return False
 
 
