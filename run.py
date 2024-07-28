@@ -6,6 +6,7 @@ import glob, os, sys
 from PyPDF2 import PdfReader, PdfWriter
 import pdfkit
 from fpdf import FPDF
+import parser
 
 
 # Command-line flags for wkhtmltopdf
@@ -14,39 +15,10 @@ wk_options = {
   "quiet": None,
 }
 
+
 # Instance variables
 iteration = 0
 pdfs_to_merge = []
-
-# Command-line options
-ARG_HELP = False
-ARG_PATH = ""
-ARG_SOURCE_EXT = "java"
-ARG_SOURCE_ONLY = False
-ARG_GRADLE_TEST_DIR = "test"
-ARG_GRADLE_ONLY = False
-ARG_GRADLE_SUM_VIEW = 1
-ARG_COMBINE_PDFS = False
-ARG_COMBINE_PDF_1 = ""
-ARG_COMBINE_PDF_2 = ""
-ARG_OUTPUT_DIR = "output"
-
-# Help menu
-HELP_MENU = """
-FLAG                OPTIONS         SHORTCUT    DEFAULT
----------------------------------------------------------
---help                              -h
---path              [path]          -p          none
-
---source-ext        [ext]           -se         java
---source-only                       -so
-
---gradle-test-dir   [name]          -t          test
---gradle-only                       -go
---gradle-sum-view   <1|2>           -gv         1
-
---combine           [pdf1] [pdf2]   -c
-"""
 
 
 # def combine_pdf(path):
@@ -77,7 +49,7 @@ def fetch_and_append(input: str, type: str, method: str):
     global iteration
     iteration += 1
     print('Fetching ' + type +  ' ' + input + '"')
-    output = type + str(iteration) + '.pdf'
+    output = parser.TEMP_OUTPUT_DIR + '/' + type + str(iteration) + '.pdf'
     if (method == "pdfkit"):
         pdfkit.from_file(input, output, wk_options)
     elif (method == "src"):
@@ -93,7 +65,7 @@ def swap_gradle_view():
         elif i == 2:
             replacements = {'.temp_class_abc': '.deselected'}
         lines = []
-        name = ARG_PATH + '/build/reports/tests/' + ARG_GRADLE_TEST_DIR + '/css/base-style.css'
+        name = parser.ARG_PATH + '/build/reports/tests/' + parser.ARG_GRADLE_TEST_DIR + '/css/base-style.css'
         with open(name) as infile:
             for line in infile:
                 for src, target in replacements.items():
@@ -105,23 +77,23 @@ def swap_gradle_view():
 
 
 def grab_checkstyle_reports():
-    for filename in glob.iglob(ARG_PATH + '/build/reports/checkstyle/main.html', recursive=True):
+    for filename in glob.iglob(parser.ARG_PATH + '/build/reports/checkstyle/main.html', recursive=True):
         fetch_and_append(filename, "checkstyle", "pdfkit")
 
 
 def grab_test_reports():
     swap_gradle_view()
-    for filename in glob.iglob(ARG_PATH + '/build/reports/tests/' + ARG_GRADLE_TEST_DIR + '/index.html', recursive=True):
+    for filename in glob.iglob(parser.ARG_PATH + '/build/reports/tests/' + parser.ARG_GRADLE_TEST_DIR + '/index.html', recursive=True):
         fetch_and_append(filename, "test", "pdfkit")
     swap_gradle_view()
-    for filename in glob.iglob(ARG_PATH + '/build/reports/tests/' + ARG_GRADLE_TEST_DIR + '/classes/**/*.html', recursive=True):
+    for filename in glob.iglob(parser.ARG_PATH + '/build/reports/tests/' + parser.ARG_GRADLE_TEST_DIR + '/classes/**/*.html', recursive=True):
         fetch_and_append(filename, "test", "pdfkit")
 
 
 def grab_source_code():
     global iteration
     # filename = 'src_diff.txt'
-    for filename in glob.iglob(ARG_PATH + '/src/**/*.java', recursive=True):
+    for filename in glob.iglob(parser.ARG_PATH + '/src/**/*.' + parser.ARG_SOURCE_EXT, recursive=True):
         fetch_and_append(filename, "src", "src")
 
 
@@ -145,15 +117,26 @@ def cleanup():
         os.remove(pdf)
 
 
-if __name__ == "__main__":
-    if (len(sys.argv) < 3):
-        print("Specify a path to the project (it should contain the Gradle build directory).")
-        sys.exit(0)
-    ARG_PATH = sys.argv[2]
+def parse_arguments():
+    if (not parser.parse_all()):
+        print("There was an issue parsing the command. Use '--help' or '-h' for usage info.")
+        sys.exit()
 
+def create_output_directories():
+    out_dir = os.path.dirname(parser.ARG_OUTPUT_FILE)
+    temp_dir = os.path.dirname(parser.TEMP_OUTPUT_DIR)
+    if out_dir:
+        os.makedirs(out_dir, exist_ok=True)
+    if temp_dir:
+        os.makedirs(temp_dir, exist_ok=True)
+
+
+if __name__ == "__main__":
+    parse_arguments()
+    create_output_directories()
     grab_test_reports()
     grab_checkstyle_reports()
     grab_source_code()
-    merge_pdfs(pdfs_to_merge, 'output_final.pdf')
+    merge_pdfs(pdfs_to_merge, parser.ARG_OUTPUT_FILE)
     cleanup()
     print('Done')
