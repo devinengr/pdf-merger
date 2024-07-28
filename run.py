@@ -62,16 +62,21 @@ def swap_gradle_view():
                 outfile.write(line)
 
 
+def swap_gradle_view_if_preferred():
+    if (parser.ARG_GRADLE_SUM_VIEW == 2):
+        swap_gradle_view()
+
+
 def grab_checkstyle_reports():
     for filename in glob.iglob(parser.ARG_PATH + '/build/reports/checkstyle/main.html', recursive=True):
         fetch_and_append(filename, "checkstyle", "pdfkit")
 
 
 def grab_test_reports():
-    swap_gradle_view()
+    swap_gradle_view_if_preferred()
     for filename in glob.iglob(parser.ARG_PATH + '/build/reports/tests/' + parser.ARG_GRADLE_TEST_DIR + '/index.html', recursive=True):
         fetch_and_append(filename, "test", "pdfkit")
-    swap_gradle_view()
+    swap_gradle_view_if_preferred()
     for filename in glob.iglob(parser.ARG_PATH + '/build/reports/tests/' + parser.ARG_GRADLE_TEST_DIR + '/classes/**/*.html', recursive=True):
         fetch_and_append(filename, "test", "pdfkit")
 
