@@ -150,9 +150,12 @@ def parse_source_ext() -> bool:
 def parse_source_only() -> bool:
     global ARG_SOURCE_ONLY
     src_only_flag = build_flag("--source-only", "-so")
+    gradle_only_flag = build_flag("--gradle-only", "-go")
     path_flag = build_flag("--path", "-p")
     if (src_only_flag.occurrences == 0):
         return True
+    if (src_only_flag.occurrences == 1 and gradle_only_flag.occurrences == 1):
+        return False
     if (path_flag.occurrences == 1 and src_only_flag.occurrences == 1):
         if (len(src_only_flag.options) == 0):
             ARG_SOURCE_ONLY = True
@@ -163,9 +166,12 @@ def parse_source_only() -> bool:
 def parse_gradle_only() -> bool:
     global ARG_GRADLE_ONLY
     gradle_only_flag = build_flag("--gradle-only", "-go")
+    src_only_flag = build_flag("--source-only", "-so")
     path_flag = build_flag("--path", "-p")
     if (gradle_only_flag.occurrences == 0):
         return True
+    if (src_only_flag.occurrences == 1 and gradle_only_flag.occurrences == 1):
+        return False
     if (path_flag.occurrences == 1 and gradle_only_flag.occurrences == 1):
         if (len(gradle_only_flag.options) == 0):
             ARG_GRADLE_ONLY = True

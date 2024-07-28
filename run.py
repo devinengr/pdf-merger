@@ -21,20 +21,6 @@ iteration = 0
 pdfs_to_merge = []
 
 
-# def combine_pdf(path):
-#     print('Fetching "' + path + '"')
-#     pdf_writer = PdfWriter()
-#     pdf_reader = PdfReader(path)
-#     for page in pdf_reader.pages:
-#         # Add each page to the writer object
-#         pdf_writer.add_page(page)
-#     # Write out the merged PDF
-#     target_name = 'initial' + str(iteration) + '.pdf'
-#     with open(target_name, 'wb') as out:
-#         pdf_writer.write(out)
-#     pdfs_to_merge.append(target_name)
-
-
 def make_pdf_from_source(input: str, output: str):
     pdf = FPDF()
     pdf.add_page()
@@ -92,8 +78,7 @@ def grab_test_reports():
 
 def grab_source_code():
     global iteration
-    # filename = 'src_diff.txt'
-    for filename in glob.iglob(parser.ARG_PATH + '/src/**/*.' + parser.ARG_SOURCE_EXT, recursive=True):
+    for filename in glob.iglob(parser.ARG_PATH + '/**/*.' + parser.ARG_SOURCE_EXT, recursive=True):
         fetch_and_append(filename, "src", "src")
 
 
@@ -122,6 +107,7 @@ def parse_arguments():
         print("There was an issue parsing the command. Use '--help' or '-h' for usage info.")
         sys.exit()
 
+
 def create_output_directories():
     out_dir = os.path.dirname(parser.ARG_OUTPUT_FILE)
     temp_dir = os.path.dirname(parser.TEMP_OUTPUT_DIR)
@@ -131,12 +117,18 @@ def create_output_directories():
         os.makedirs(temp_dir, exist_ok=True)
 
 
+def grab_files():
+    if (not parser.ARG_SOURCE_ONLY):
+        grab_test_reports()
+        grab_checkstyle_reports()
+    if (not parser.ARG_GRADLE_ONLY):
+        grab_source_code()
+
+
 if __name__ == "__main__":
     parse_arguments()
     create_output_directories()
-    grab_test_reports()
-    grab_checkstyle_reports()
-    grab_source_code()
+    grab_files()
     merge_pdfs(pdfs_to_merge, parser.ARG_OUTPUT_FILE)
     cleanup()
     print('Done')
