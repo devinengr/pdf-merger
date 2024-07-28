@@ -169,5 +169,7 @@ cython_debug/
 # PDF files
 *.pdf
 
-# output directory
+# output directories
 output/
+out/
+temp/
