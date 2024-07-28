@@ -1,6 +1,6 @@
 # PDF Merger Tool
 
-Note: The tool is in an incomplete state. Use caution when using the tool, and expect that some features will not work correctly or at all.
+
 
 # Description
 
