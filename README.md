@@ -1,6 +1,8 @@
 # PDF Merger Tool
 
+![source demo](media/pdf_merger_demo_source.gif)
 
+![combine demo](media/pdf_merger_demo_combine.gif)
 
 # Description
 
